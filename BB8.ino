@@ -1,21 +1,25 @@
 #include <ESP8266WiFi.h>
-//#include <WiFiClient.h> 
 #include <ESP8266WebServer.h>
+#include "webpages.h"
 
 ESP8266WebServer server(80);
 
 #define ESP8266_LED 5
-const char* rootPage = "<body><h1>You are connected</h1></body>";
 
 void handleRoot() {
-	server.send(200, "text/html", rootPage);
+	server.send(200, "text/html", index_html);
   Serial.println("Served /");
 }
 
 void handleRover() {
-  String leftPower = server.arg("left");
-  String rightPower = server.arg("right");
-  Serial.println("Changing power to " + leftPower + " and " + rightPower);
+  String power = server.arg("power");
+  String direction = server.arg("direction");
+  Serial.println("Changing power to " + power + " and direction to " + direction);
+}
+
+void handleAcceleration() {
+  String acceleration = server.arg("value");
+  Serial.println("Changing acceleration to " + acceleration);
 }
 
 void initWiFi() {
@@ -40,6 +44,7 @@ void initWiFi() {
   WiFi.printDiag(Serial);
   server.on("/", handleRoot);
   server.on("/rover", handleRover);
+  server.on("/acceleration", handleAcceleration);
   server.begin();
   Serial.println("HTTP server started");
 }

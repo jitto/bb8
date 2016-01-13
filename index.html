@@ -8,36 +8,14 @@
   height:0;
   padding-bottom:100%;
 }
-#touchPad div {
-  border:2px;
-  border-style:solid;
-  width:100%;
-  height:0;
-}
-table {
-  width:100% ; height:0; padding-bottom:100%;
-}
-td {
-    height: 10%;
-}
 </style>
 <body>
   <meta name="viewport" content="width=device-width,user-scalable=no">
   <div id="touchPad">
-    <span><div></div><div></div></span>
-    <span><div></div><div></div></span>
-    <!--
-    <table border="1">
-      <tr><td/><td/><td/><td/></tr>
-      <tr><td/><td/><td/><td/></tr>
-      <tr><td/><td/><td/><td/></tr>
-      <tr><td/><td/><td/><td/></tr>
-    </table>
-  -->
   </div>
   <div>
-    Power :
-    <input type="range" name="points" min="0" max="10" value="0" onchange="callBB8('/power?value=' + this.value)">
+    Responsiveness :
+    <input type="range" name="points" min="0" max="10" value="0" onchange="callBB8('/acceleration?value=' + this.value)">
   </div>
 </body>
 <script>
@@ -51,22 +29,37 @@ var touchPad = document.getElementById("touchPad");
 touchPad.addEventListener("touchstart", touchStart, false);
 touchPad.addEventListener("touchmove", touchStart, false);
 touchPad.addEventListener("touchend", touchEnd, false);
-touchPad.addEventListener("mousedown", touchStart, false);
+touchPad.addEventListener("mousedown", mouseMove, false);
 touchPad.addEventListener("mousemove", mouseMove, false);
 touchPad.addEventListener("mouseup", touchEnd, false);
 
+var lastPower = 0, lastDirection = 0;
+
+function setBB8Power(x, y) {
+  var power = -(y - touchPad.offsetHeight / 2) / (touchPad.offsetHeight / 2);
+  var direction = (x - touchPad.offsetWidth / 2) / (touchPad.offsetWidth / 2);
+  if (Math.abs(power - lastPower) > 0.1 || Math.abs(direction - lastDirection) > 0.1) {
+    lastPower = power;
+    lastDirection = direction;
+    callBB8('/rover?power=' + power + '&direction=' + direction);
+  }
+}
+
 function mouseMove(event) {
   if (event.which > 0) {
-    touchStart(event);
+    setBB8Power(event.offsetX, event.offsetY);
   }
 }
 
 function touchStart(event) {
-  console.log(event);
+  event.preventDefault();
+  setBB8Power(event.touches[0].offsetX, event.touches[0].offsetY);
 }
 
 function touchEnd(event) {
-  console.log(event);
+  lastPower = 0;
+  lastDirection = 0;
+  callBB8('/rover?power=0&direction=0');
 }
 </script>
 </html>
